@@ -185,45 +185,49 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             )
         )
 
-    # Configuração dos 3 Sliders empilhados
+    # Configuração dos 3 Sliders empilhados com espaçamento vertical seguro
     slider_z = dict(
         active=mid_z,
-        currentvalue={"prefix": "Fatia Z (Profundidade): ", "font": {"size": 12, "color": "#1f77b4"}},
-        pad={"t": 5, "b": 5},
+        currentvalue={"prefix": "Fatia Z (Profundidade): ", "font": {"size": 13, "color": "#1f77b4"}},
+        pad={"t": 8, "b": 8},
         len=0.88,
         x=0.06,
-        y=-0.02,
+        y=-0.04,
         steps=steps_z,
     )
 
     slider_y = dict(
         active=idx_y_list.index(mid_y if mid_y in idx_y_list else idx_y_list[len(idx_y_list) // 2]),
-        currentvalue={"prefix": "Fatia Y (Inline): ", "font": {"size": 12, "color": "#2ca02c"}},
-        pad={"t": 5, "b": 5},
+        currentvalue={"prefix": "Fatia Y (Inline): ", "font": {"size": 13, "color": "#2ca02c"}},
+        pad={"t": 8, "b": 8},
         len=0.88,
         x=0.06,
-        y=-0.12,
+        y=-0.14,
         steps=steps_y,
     )
 
     slider_x = dict(
         active=idx_x_list.index(mid_x if mid_x in idx_x_list else idx_x_list[len(idx_x_list) // 2]),
-        currentvalue={"prefix": "Fatia X (Crossline): ", "font": {"size": 12, "color": "#d62728"}},
-        pad={"t": 5, "b": 5},
+        currentvalue={"prefix": "Fatia X (Crossline): ", "font": {"size": 13, "color": "#d62728"}},
+        pad={"t": 8, "b": 8},
         len=0.88,
         x=0.06,
-        y=-0.22,
+        y=-0.24,
         steps=steps_x,
     )
 
     fig.update_layout(
-        title=f"Modelo Turbidítico 3D - Fatias X, Y, Z ({propriedades[0]})",
+        height=940,
+        title=dict(
+            text=f"Modelo Turbidítico 3D - Fatias X, Y, Z ({propriedades[0]})",
+            font=dict(size=18),
+        ),
         updatemenus=[
             dict(
                 type="dropdown",
                 direction="down",
                 x=0.0,
-                y=1.12,
+                y=1.10,
                 buttons=dropdown_buttons,
             )
         ],
@@ -232,7 +236,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             title="Camadas e Fatias:",
             orientation="v",
             x=1.12,
-            y=0.8,
+            y=0.85,
         ),
         scene=dict(
             xaxis_title="X (m)",
@@ -241,11 +245,57 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             zaxis=dict(autorange="reversed"),  # Geologia: profundidade aumenta para baixo
             aspectratio=dict(x=1.2, y=1.0, z=0.5),
         ),
-        margin=dict(l=0, r=0, b=160, t=60),
+        margin=dict(l=60, r=60, b=260, t=80),
     )
 
+    # Gerar HTML com margens de pagina e container elegante
+    plot_div = fig.to_html(include_plotlyjs=True, full_html=False)
+
+    template_html = f"""<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelo Turbidítico 3D - Fatias Interativas</title>
+  <style>
+    * {{
+      box-sizing: border-box;
+    }}
+    html, body {{
+      margin: 0;
+      padding: 0;
+      background-color: #edf2f7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }}
+    .page-wrapper {{
+      padding: 30px 40px 60px 40px;
+      min-height: 100vh;
+    }}
+    .card-container {{
+      max-width: 1550px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      padding: 25px 25px 40px 25px;
+      overflow: visible;
+    }}
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="card-container">
+      {plot_div}
+    </div>
+  </div>
+</body>
+</html>
+"""
+
     saida_html = (base_dir / "visualizacao_3d_interativa.html").resolve()
-    fig.write_html(str(saida_html))
+    with open(saida_html, "w", encoding="utf-8") as f:
+        f.write(template_html)
+
     print(f"Arquivo HTML 3D gerado com sucesso: {saida_html}")
 
     if abrir_navegador:
