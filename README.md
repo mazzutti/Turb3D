@@ -5,34 +5,49 @@ Abre diretamente no navegador padrão sem necessidade de Jupyter. Compatível co
 
 ---
 
-## 1. Instalação no Windows
+## 1. Clonar o Repositório
+
+Abra o **PowerShell**, **Terminal** ou **Prompt de Comando (CMD)** e execute:
+
+```bash
+# Clonar o repositório
+git clone https://github.com/mazzutti/Turb3D.git
+
+# Entrar na pasta do projeto
+cd Turb3D
+```
+
+---
+
+## 2. Instalação no Windows
 
 ### Pré-requisitos
 - Python 3.10 ou superior instalado ([python.org](https://www.python.org/downloads/)).  
   *(Na instalação, marcar a opção **"Add python.exe to PATH"**).*
+- Git instalado ([git-scm.com](https://git-scm.com/)).
 
 ---
 
 ### Passo a passo (PowerShell)
 
-Abra o **PowerShell** na pasta do projeto e execute:
+Dentro da pasta `Turb3D`, execute:
 
 ```powershell
 # 1. Habilitar execução de scripts para a sessão atual (caso bloqueado)
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 
-# 2. Criar ambiente virtual
+# 2. Criar ambiente virtual (.venv)
 python -m venv .venv
 
-# 3. Ativar ambiente virtual
+# 3. Ativar o ambiente virtual
 .venv\Scripts\Activate.ps1
 
-# 4. Instalar dependências leves (numpy e plotly)
+# 4. Atualizar pip e instalar dependências
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-> **Se preferir o Prompt de Comando clássico (CMD):**
+> **Se preferir usar o Prompt de Comando clássico (CMD):**
 > ```cmd
 > python -m venv .venv
 > .venv\Scripts\activate.bat
@@ -41,7 +56,7 @@ pip install -r requirements.txt
 
 ---
 
-## 2. Como Executar
+## 3. Como Executar
 
 Com o ambiente ativado, execute:
 
@@ -51,12 +66,12 @@ python ver_3d.py
 
 O script irá:
 1. Carregar os dados geológicos de `modelo_turbiditico_3D.npz`.
-2. Gerar o arquivo interativo `visualizacao_3d_interativa.html`.
+2. Gerar o arquivo interativo `visualizacao_3d_interativa.html` (com margens externas e layout em cartão).
 3. Abrir automaticamente a aba no seu navegador padrão (Edge, Chrome, Firefox).
 
 ---
 
-## 3. Controles Interativos no Navegador
+## 4. Controles Interativos no Navegador
 
 - **3 Sliders Independentes de Fatias (abaixo do gráfico 3D):**
   - **Slider Z (Azul - Profundidade):** Desliza entre as 35 camadas geológicas (1850 m a 2200 m).
@@ -79,9 +94,10 @@ O script irá:
 
 ---
 
-## 4. Estrutura dos Arquivos
+## 5. Estrutura dos Arquivos
 
 - `modelo_turbiditico_3D.npz`: Arquivo de dados tridimensionais (eixos `x`, `y`, `z` e matrizes de propriedades).
 - `ver_3d.py`: Script Python com Plotly que gera e abre a visualização por fatias X, Y, Z e volume 3D.
 - `requirements.txt`: Dependências mínimas (`numpy`, `plotly`).
 - `visualizacao_3d_interativa.html`: Arquivo HTML gerado pelo script.
+- `.gitignore`: Configuração para ignorar arquivos temporários, caches e o HTML volumétrico.
