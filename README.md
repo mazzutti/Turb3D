@@ -1,6 +1,6 @@
 # Visualização 3D - Modelo Turbidítico (Plotly)
 
-Visualização tridimensional volumétrica e por **fatias interativas** do modelo geológico `modelo_turbiditico_3D.npz`.  
+Visualização tridimensional volumétrica e por **fatias ortogonais interativas com 3 sliders (X, Y, Z)** do modelo geológico `modelo_turbiditico_3D.npz`.  
 Abre diretamente no navegador padrão sem necessidade de Jupyter. Compatível com **Windows 10/11**, Linux e macOS.
 
 ---
@@ -58,14 +58,12 @@ O script irá:
 
 ## 3. Controles Interativos no Navegador
 
-- **Fatias Ortogonais 3D (Padrão):**
-  - **Fatia Z (Horizontal / Camada):** Mostra a distribuição espacial da propriedade na profundidade selecionada.
-  - **Fatia X (Vertical / Crossline):** Seção transversal do reservatório.
-  - **Fatia Y (Vertical / Inline):** Seção longitudinal do reservatório.
-- **Slider de Profundidade Z (abaixo do gráfico):**
-  - Deslize para navegar entre todas as 35 camadas geológicas (de 1850 m a 2200 m) em tempo real.
+- **3 Sliders Independentes de Fatias (abaixo do gráfico 3D):**
+  - **Slider Z (Azul - Profundidade):** Desliza entre as 35 camadas geológicas (1850 m a 2200 m).
+  - **Slider Y (Verde - Inline):** Desliza o plano vertical ao longo do eixo Y (0 m a 7000 m).
+  - **Slider X (Vermelho - Crossline):** Desliza o plano vertical ao longo do eixo X (0 m a 9000 m).
 - **Menu Dropdown (canto superior esquerdo):**  
-  Alterna instantaneamente entre as propriedades do reservatório:
+  Alterna instantaneamente a propriedade exibida em todas as fatias:
   - `porosity` (Porosidade)
   - `permeability_mD` (Permeabilidade em mD)
   - `facies` (Fácies sedimentares)
@@ -84,6 +82,6 @@ O script irá:
 ## 4. Estrutura dos Arquivos
 
 - `modelo_turbiditico_3D.npz`: Arquivo de dados tridimensionais (eixos `x`, `y`, `z` e matrizes de propriedades).
-- `ver_3d.py`: Script Python com Plotly que gera e abre a visualização por fatias e volume 3D.
+- `ver_3d.py`: Script Python com Plotly que gera e abre a visualização por fatias X, Y, Z e volume 3D.
 - `requirements.txt`: Dependências mínimas (`numpy`, `plotly`).
 - `visualizacao_3d_interativa.html`: Arquivo HTML gerado pelo script.
