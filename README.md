@@ -1,38 +1,38 @@
-# Visualização 3D - Modelo Turbidítico
+# Visualização 3D - Modelo Turbidítico (Plotly)
 
-Visualização tridimensional interativa do modelo geológico `modelo_turbiditico_3D.npz`.  
-Compatível com **Windows 10/11**, Linux e macOS.
+Visualização tridimensional volumétrica e interativa do modelo geológico `modelo_turbiditico_3D.npz`.  
+Abre diretamente no navegador padrão sem necessidade de Jupyter. Compatível com **Windows 10/11**, Linux e macOS.
 
 ---
 
 ## 1. Instalação no Windows
 
 ### Pré-requisitos
-- Python 3.10 ou superior instalado no Windows ([python.org](https://www.python.org/downloads/)).  
-  *(Ao instalar, marque a caixa **"Add python.exe to PATH"**).*
+- Python 3.10 ou superior instalado ([python.org](https://www.python.org/downloads/)).  
+  *(Na instalação, marcar a opção **"Add python.exe to PATH"**).*
 
 ---
 
-### Passo a passo no Windows (PowerShell)
+### Passo a passo (PowerShell)
 
 Abra o **PowerShell** na pasta do projeto e execute:
 
 ```powershell
-# 1. Liberar execução de scripts para a sessão atual (se necessário)
+# 1. Habilitar execução de scripts para a sessão atual (caso bloqueado)
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 
-# 2. Criar o ambiente virtual (.venv)
+# 2. Criar ambiente virtual
 python -m venv .venv
 
-# 3. Ativar o ambiente virtual
+# 3. Ativar ambiente virtual
 .venv\Scripts\Activate.ps1
 
-# 4. Atualizar pip e instalar dependências
+# 4. Instalar dependências leves (numpy e plotly)
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-> **Se preferir usar o Prompt de Comando clássico (CMD):**
+> **Se preferir o Prompt de Comando clássico (CMD):**
 > ```cmd
 > python -m venv .venv
 > .venv\Scripts\activate.bat
@@ -41,44 +41,41 @@ pip install -r requirements.txt
 
 ---
 
-## 2. Como Executar no Windows
+## 2. Como Executar
 
-### Opção A: Visualizador 3D no Navegador (Recomendado)
-Gera volume tridimensional interativo e abre automaticamente no navegador padrão (Edge, Chrome, Firefox, etc.):
+Com o ambiente ativado, execute:
 
 ```powershell
 python ver_3d.py
 ```
 
-- **Interação:**
-  - Botão esquerdo do mouse: Rotação 3D
-  - Scroll do mouse: Zoom in / Zoom out
-  - Botão direito: Pan (mover câmera)
-- **Menu Dropdown (canto superior esquerdo):**
-  - Alterna entre as propriedades: `porosity`, `permeability_mD`, `facies` e `depth`.
-- **Eixo Z:** Profundidade orientada conforme geologia (aumenta para baixo).
+O script irá:
+1. Carregar os dados geológicos de `modelo_turbiditico_3D.npz`.
+2. Gerar o arquivo interativo `visualizacao_3d_interativa.html`.
+3. Abrir automaticamente a aba no seu navegador padrão (Edge, Chrome, Firefox).
 
 ---
 
-### Opção B: Lexcube no JupyterLab
-Para utilizar o widget 3D do **Lexcube**:
+## 3. Controles Interativos no Navegador
 
-```powershell
-jupyter lab visualizacao_turbiditico_3d.ipynb
-```
-
-*(Se o Firewall do Windows exibir um aviso de rede para o Python, clique em "Permitir Acesso").*
-
-1. A página do JupyterLab abrirá no navegador (`http://localhost:8888`).
-2. Clique no botão **Run All** (ícone ▶▶ na barra de ferramentas).
-3. O cubo 3D do Lexcube será renderizado na saída da célula com sliders interativos de fatia.
+- **Menu Dropdown (canto superior esquerdo):**  
+  Alterna instantaneamente entre as propriedades do reservatório:
+  - `porosity` (Porosidade)
+  - `permeability_mD` (Permeabilidade em mD)
+  - `facies` (Fácies sedimentares)
+  - `depth` (Profundidade)
+- **Navegação 3D:**
+  - **Botão esquerdo do mouse (arrastar):** Rotação 3D em torno do volume.
+  - **Scroll do mouse:** Zoom in / Zoom out.
+  - **Botão direito do mouse:** Pan (deslocar a câmera).
+  - **Barra de cores (canto direito):** Mostra escala e limites da propriedade ativa.
+- **Eixo Z:** Profundidade orientada conforme convenção geológica (profundidade aumenta para baixo).
 
 ---
 
-## 3. Estrutura dos Arquivos
+## 4. Estrutura dos Arquivos
 
-- `modelo_turbiditico_3D.npz`: Arquivo de dados tridimensionais (eixos `x`, `y`, `z` e matrizes `porosity`, `permeability_mD`, `facies`, `depth`).
-- `ver_3d.py`: Script autônomo com Plotly que gera e abre o visualizador 3D no navegador.
-- `visualizar_lexcube.py`: Módulo auxiliar para carregar o modelo no formato do Lexcube.
-- `visualizacao_turbiditico_3d.ipynb`: Notebook Jupyter configurado para o Lexcube.
-- `requirements.txt`: Dependências do projeto.
+- `modelo_turbiditico_3D.npz`: Arquivo de dados tridimensionais (eixos `x`, `y`, `z` e matrizes de propriedades).
+- `ver_3d.py`: Script Python com Plotly que gera e abre a visualização 3D.
+- `requirements.txt`: Dependências mínimas (`numpy`, `plotly`).
+- `visualizacao_3d_interativa.html`: Arquivo HTML gerado pelo script.

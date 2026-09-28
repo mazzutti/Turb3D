@@ -1,0 +1,27 @@
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Bytecode e cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos gerados grandes / HTMLs interativos
+*.html
+
+# Checkpoints do Jupyter
+.ipynb_checkpoints/
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
