@@ -1,6 +1,6 @@
 # Visualização 3D - Modelo Turbidítico (Plotly)
 
-Visualização tridimensional volumétrica e interativa do modelo geológico `modelo_turbiditico_3D.npz`.  
+Visualização tridimensional volumétrica e por **fatias interativas** do modelo geológico `modelo_turbiditico_3D.npz`.  
 Abre diretamente no navegador padrão sem necessidade de Jupyter. Compatível com **Windows 10/11**, Linux e macOS.
 
 ---
@@ -58,17 +58,25 @@ O script irá:
 
 ## 3. Controles Interativos no Navegador
 
+- **Fatias Ortogonais 3D (Padrão):**
+  - **Fatia Z (Horizontal / Camada):** Mostra a distribuição espacial da propriedade na profundidade selecionada.
+  - **Fatia X (Vertical / Crossline):** Seção transversal do reservatório.
+  - **Fatia Y (Vertical / Inline):** Seção longitudinal do reservatório.
+- **Slider de Profundidade Z (abaixo do gráfico):**
+  - Deslize para navegar entre todas as 35 camadas geológicas (de 1850 m a 2200 m) em tempo real.
 - **Menu Dropdown (canto superior esquerdo):**  
   Alterna instantaneamente entre as propriedades do reservatório:
   - `porosity` (Porosidade)
   - `permeability_mD` (Permeabilidade em mD)
   - `facies` (Fácies sedimentares)
   - `depth` (Profundidade)
+- **Legenda Interativa (canto direito):**
+  - Clique em qualquer fatia (`Fatia Z`, `Fatia X`, `Fatia Y`) para ocultá-la ou exibi-la.
+  - Clique em **"Volume 3D Completo"** para ativar a nuvem volumétrica com transparência junto com as fatias.
 - **Navegação 3D:**
   - **Botão esquerdo do mouse (arrastar):** Rotação 3D em torno do volume.
   - **Scroll do mouse:** Zoom in / Zoom out.
   - **Botão direito do mouse:** Pan (deslocar a câmera).
-  - **Barra de cores (canto direito):** Mostra escala e limites da propriedade ativa.
 - **Eixo Z:** Profundidade orientada conforme convenção geológica (profundidade aumenta para baixo).
 
 ---
@@ -76,6 +84,6 @@ O script irá:
 ## 4. Estrutura dos Arquivos
 
 - `modelo_turbiditico_3D.npz`: Arquivo de dados tridimensionais (eixos `x`, `y`, `z` e matrizes de propriedades).
-- `ver_3d.py`: Script Python com Plotly que gera e abre a visualização 3D.
+- `ver_3d.py`: Script Python com Plotly que gera e abre a visualização por fatias e volume 3D.
 - `requirements.txt`: Dependências mínimas (`numpy`, `plotly`).
 - `visualizacao_3d_interativa.html`: Arquivo HTML gerado pelo script.

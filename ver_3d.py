@@ -16,15 +16,17 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
     y = dados["y"]  # (70,)
     z = dados["z"]  # (35,)
 
-    # Meshgrid com coordenadas reais
-    Y, X, Z = np.meshgrid(y, x, z, indexing="ij")
-    x_flat = X.flatten()
-    y_flat = Y.flatten()
-    z_flat = Z.flatten()
+    # Malhas para fatias e volume
+    X_z, Y_z = np.meshgrid(x, y)
+    Y_x, Z_x = np.meshgrid(y, z, indexing="ij")
+    X_y, Z_y = np.meshgrid(x, z, indexing="ij")
+    Y_vol, X_vol, Z_vol = np.meshgrid(y, x, z, indexing="ij")
 
-    variaveis = ["porosity", "permeability_mD", "facies", "depth"]
-    fig = go.Figure()
+    mid_z = len(z) // 2
+    mid_x = len(x) // 2
+    mid_y = len(y) // 2
 
+    propriedades = ["porosity", "permeability_mD", "facies", "depth"]
     cmaps = {
         "porosity": "Viridis",
         "permeability_mD": "Turbo",
@@ -32,55 +34,145 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
         "depth": "Cividis",
     }
 
-    # Criar um trace de Volume 3D para cada propriedade
-    for i, var in enumerate(variaveis):
-        val = dados[var]
-        val_flat = val.flatten()
-        vmin = float(np.nanmin(val_flat))
-        vmax = float(np.nanmax(val_flat))
+    fig = go.Figure()
 
+    # Cada propriedade recebe 4 traces:
+    # 0: Fatia Z (Profundidade / Horizontal)
+    # 1: Fatia X (Crossline / Vertical)
+    # 2: Fatia Y (Inline / Vertical)
+    # 3: Volume 3D (Nuvem volumétrica)
+    for i, prop in enumerate(propriedades):
+        val = dados[prop]
+        vmin, vmax = float(np.nanmin(val)), float(np.nanmax(val))
+        ativo = (i == 0)
+
+        # 1. Fatia Z (Plano Horizontal)
+        fig.add_trace(
+            go.Surface(
+                x=X_z,
+                y=Y_z,
+                z=np.full_like(X_z, z[mid_z]),
+                surfacecolor=val[:, :, mid_z],
+                colorscale=cmaps[prop],
+                name="Fatia Z (Profundidade)",
+                legendgroup=prop,
+                cmin=vmin,
+                cmax=vmax,
+                colorbar=dict(title=prop, x=1.02),
+                visible=ativo,
+                showscale=True,
+            )
+        )
+
+        # 2. Fatia X (Plano Vertical Crossline)
+        fig.add_trace(
+            go.Surface(
+                x=np.full_like(Y_x, x[mid_x]),
+                y=Y_x,
+                z=Z_x,
+                surfacecolor=val[:, mid_x, :],
+                colorscale=cmaps[prop],
+                name="Fatia X (Crossline)",
+                legendgroup=prop,
+                cmin=vmin,
+                cmax=vmax,
+                visible=ativo,
+                showscale=False,
+            )
+        )
+
+        # 3. Fatia Y (Plano Vertical Inline)
+        fig.add_trace(
+            go.Surface(
+                x=X_y,
+                y=np.full_like(X_y, y[mid_y]),
+                z=Z_y,
+                surfacecolor=val[mid_y, :, :],
+                colorscale=cmaps[prop],
+                name="Fatia Y (Inline)",
+                legendgroup=prop,
+                cmin=vmin,
+                cmax=vmax,
+                visible=ativo,
+                showscale=False,
+            )
+        )
+
+        # 4. Volume 3D (Disponível na legenda com 1 clique)
         fig.add_trace(
             go.Volume(
-                x=x_flat,
-                y=y_flat,
-                z=z_flat,
-                value=val_flat,
+                x=X_vol.flatten(),
+                y=Y_vol.flatten(),
+                z=Z_vol.flatten(),
+                value=val.flatten(),
                 isomin=vmin,
                 isomax=vmax,
-                opacity=0.15,
-                surface_count=18,
-                colorscale=cmaps.get(var, "Viridis"),
-                colorbar=dict(title=var),
-                name=var,
-                visible=(i == 0),  # Apenas o primeiro visivel inicialmente
+                opacity=0.10,
+                surface_count=15,
+                colorscale=cmaps[prop],
+                name="Volume 3D Completo",
+                legendgroup=prop,
+                visible=("legendonly" if ativo else False),
+                showscale=False,
             )
         )
 
-    # Botoes para alternar entre as propriedades
-    buttons = []
-    for i, var in enumerate(variaveis):
-        vis = [False] * len(variaveis)
-        vis[i] = True
-        buttons.append(
+    # Menu Dropdown para alternar propriedades
+    dropdown_buttons = []
+    for i, prop in enumerate(propriedades):
+        vis = [False] * (len(propriedades) * 4)
+        vis[i * 4] = True
+        vis[i * 4 + 1] = True
+        vis[i * 4 + 2] = True
+        vis[i * 4 + 3] = "legendonly"
+        dropdown_buttons.append(
             dict(
-                label=var,
+                label=prop,
                 method="update",
-                args=[{"visible": vis}, {"title": f"Modelo Turbidítico 3D - Propriedade: {var}"}],
+                args=[{"visible": vis}, {"title": f"Modelo Turbidítico 3D - Fatias e Volume ({prop})"}],
             )
         )
+
+    # Slider interativo para navegar pelas 35 camadas em Z
+    z_indices = [i * 4 for i in range(len(propriedades))]
+    steps = []
+    for k, z_val in enumerate(z):
+        Z_k = np.full_like(X_z, z_val)
+        surfs = [dados[p][:, :, k] for p in propriedades]
+        step = dict(
+            method="restyle",
+            args=[{"z": [Z_k] * len(propriedades), "surfacecolor": surfs}, z_indices],
+            label=f"{int(z_val)}m",
+        )
+        steps.append(step)
+
+    sliders = [
+        dict(
+            active=mid_z,
+            currentvalue={"prefix": "Fatia Z (Profundidade): "},
+            pad={"t": 45, "b": 15},
+            steps=steps,
+        )
+    ]
 
     fig.update_layout(
-        title=f"Modelo Turbidítico 3D - Propriedade: {variaveis[0]}",
+        title=f"Modelo Turbidítico 3D - Fatias e Volume ({propriedades[0]})",
         updatemenus=[
             dict(
                 type="dropdown",
                 direction="down",
-                x=0.02,
-                y=0.98,
-                showactive=True,
-                buttons=buttons,
+                x=0.0,
+                y=1.12,
+                buttons=dropdown_buttons,
             )
         ],
+        sliders=sliders,
+        legend=dict(
+            title="Camadas e Fatias (clique p/ ocultar/exibir):",
+            orientation="v",
+            x=1.12,
+            y=0.8,
+        ),
         scene=dict(
             xaxis_title="X (m)",
             yaxis_title="Y (m)",
@@ -88,15 +180,15 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             zaxis=dict(autorange="reversed"),  # Geologia: profundidade aumenta para baixo
             aspectratio=dict(x=1.2, y=1.0, z=0.5),
         ),
-        margin=dict(l=0, r=0, b=0, t=50),
+        margin=dict(l=0, r=0, b=0, t=60),
     )
 
     saida_html = (base_dir / "visualizacao_3d_interativa.html").resolve()
     fig.write_html(str(saida_html))
-    print(f"Arquivo HTML 3D gerado: {saida_html}")
+    print(f"Arquivo HTML 3D gerado com sucesso: {saida_html}")
 
     if abrir_navegador:
-        print("Abrindo navegador padrao...")
+        print("Abrindo navegador padrão...")
         webbrowser.open(saida_html.as_uri())
 
 
