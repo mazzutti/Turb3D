@@ -54,11 +54,11 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
                 z=np.full_like(X_z, z[mid_z]),
                 surfacecolor=val[:, :, mid_z],
                 colorscale=cmaps[prop],
-                name="Fatia Z (Profundidade)",
+                name="Fatia Z",
                 legendgroup=prop,
                 cmin=vmin,
                 cmax=vmax,
-                colorbar=dict(title=prop, x=1.02),
+                colorbar=dict(title=prop, x=0.86, y=0.58, len=0.52),
                 visible=ativo,
                 showscale=True,
             )
@@ -72,7 +72,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
                 z=Z_x,
                 surfacecolor=val[:, mid_x, :],
                 colorscale=cmaps[prop],
-                name="Fatia X (Crossline)",
+                name="Fatia X",
                 legendgroup=prop,
                 cmin=vmin,
                 cmax=vmax,
@@ -89,7 +89,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
                 z=Z_y,
                 surfacecolor=val[mid_y, :, :],
                 colorscale=cmaps[prop],
-                name="Fatia Y (Inline)",
+                name="Fatia Y",
                 legendgroup=prop,
                 cmin=vmin,
                 cmax=vmax,
@@ -110,7 +110,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
                 opacity=0.10,
                 surface_count=15,
                 colorscale=cmaps[prop],
-                name="Volume 3D Completo",
+                name="Volume 3D",
                 legendgroup=prop,
                 visible=("legendonly" if ativo else False),
                 showscale=False,
@@ -127,9 +127,9 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
         vis[i * 4 + 3] = "legendonly"
         dropdown_buttons.append(
             dict(
-                label=prop,
+                label=f"Propriedade: {prop}",
                 method="update",
-                args=[{"visible": vis}, {"title": f"Modelo Turbidítico 3D - Fatias X, Y, Z ({prop})"}],
+                args=[{"visible": vis}],
             )
         )
 
@@ -185,67 +185,77 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             )
         )
 
-    # Configuração dos 3 Sliders empilhados com espaçamento vertical seguro
+    # Sliders empilhados com coordenadas Y positivas na faixa dedicada inferior [0.0, 0.24]
     slider_z = dict(
         active=mid_z,
-        currentvalue={"prefix": "Fatia Z (Profundidade): ", "font": {"size": 13, "color": "#1f77b4"}},
-        pad={"t": 8, "b": 8},
-        len=0.88,
-        x=0.06,
-        y=-0.04,
+        currentvalue={"prefix": "Fatia Z (Profundidade): ", "font": {"size": 12, "color": "#1f77b4"}},
+        pad={"t": 4, "b": 4},
+        len=0.80,
+        x=0.04,
+        y=0.17,
         steps=steps_z,
     )
 
     slider_y = dict(
         active=idx_y_list.index(mid_y if mid_y in idx_y_list else idx_y_list[len(idx_y_list) // 2]),
-        currentvalue={"prefix": "Fatia Y (Inline): ", "font": {"size": 13, "color": "#2ca02c"}},
-        pad={"t": 8, "b": 8},
-        len=0.88,
-        x=0.06,
-        y=-0.14,
+        currentvalue={"prefix": "Fatia Y (Inline): ", "font": {"size": 12, "color": "#2ca02c"}},
+        pad={"t": 4, "b": 4},
+        len=0.80,
+        x=0.04,
+        y=0.09,
         steps=steps_y,
     )
 
     slider_x = dict(
         active=idx_x_list.index(mid_x if mid_x in idx_x_list else idx_x_list[len(idx_x_list) // 2]),
-        currentvalue={"prefix": "Fatia X (Crossline): ", "font": {"size": 13, "color": "#d62728"}},
-        pad={"t": 8, "b": 8},
-        len=0.88,
-        x=0.06,
-        y=-0.24,
+        currentvalue={"prefix": "Fatia X (Crossline): ", "font": {"size": 12, "color": "#d62728"}},
+        pad={"t": 4, "b": 4},
+        len=0.80,
+        x=0.04,
+        y=0.01,
         steps=steps_x,
     )
 
     fig.update_layout(
-        height=940,
+        height=980,
         title=dict(
-            text=f"Modelo Turbidítico 3D - Fatias X, Y, Z ({propriedades[0]})",
-            font=dict(size=18),
+            text="Modelo Turbidítico 3D — Fatias Ortogonais Interativas",
+            font=dict(size=20),
+            x=0.02,
+            y=0.985,
+            xanchor="left",
+            yanchor="top",
         ),
         updatemenus=[
             dict(
                 type="dropdown",
                 direction="down",
-                x=0.0,
-                y=1.10,
+                x=0.02,
+                y=0.935,
+                xanchor="left",
+                yanchor="middle",
                 buttons=dropdown_buttons,
             )
         ],
         sliders=[slider_z, slider_y, slider_x],
         legend=dict(
-            title="Camadas e Fatias:",
-            orientation="v",
-            x=1.12,
-            y=0.85,
+            orientation="h",
+            x=0.32,
+            y=0.935,
+            xanchor="left",
+            yanchor="middle",
+            font=dict(size=12),
         ),
+        # Delimitar dominio da cena 3D para NUNCA encavalar nos sliders, titulo ou colorbar
         scene=dict(
+            domain=dict(x=[0.02, 0.83], y=[0.26, 0.89]),
             xaxis_title="X (m)",
             yaxis_title="Y (m)",
             zaxis_title="Profundidade Z (m)",
             zaxis=dict(autorange="reversed"),  # Geologia: profundidade aumenta para baixo
             aspectratio=dict(x=1.2, y=1.0, z=0.5),
         ),
-        margin=dict(l=60, r=60, b=260, t=80),
+        margin=dict(l=30, r=30, b=30, t=50),
     )
 
     # Gerar HTML com margens de pagina e container elegante
@@ -268,7 +278,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }}
     .page-wrapper {{
-      padding: 30px 40px 60px 40px;
+      padding: 25px 35px 50px 35px;
       min-height: 100vh;
     }}
     .card-container {{
@@ -277,7 +287,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
       background-color: #ffffff;
       border-radius: 14px;
       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-      padding: 25px 25px 40px 25px;
+      padding: 20px 20px 30px 20px;
       overflow: visible;
     }}
   </style>
