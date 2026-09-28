@@ -9,8 +9,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Arquivos gerados grandes / HTMLs interativos
+# Arquivos gerados grandes (mantendo index.html para GitHub Pages)
 *.html
+!index.html
 
 # Checkpoints do Jupyter
 .ipynb_checkpoints/

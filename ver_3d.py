@@ -1,10 +1,15 @@
+import sys
 import webbrowser
 from pathlib import Path
 import numpy as np
 import plotly.graph_objects as go
 
 
-def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True):
+def gerar_visualizacao_3d(
+    caminho_npz: str = None,
+    arquivo_saida: str = "index.html",
+    abrir_navegador: bool = True,
+):
     base_dir = Path(__file__).parent
     if caminho_npz is None:
         caminho_npz = base_dir / "modelo_turbiditico_3D.npz"
@@ -20,7 +25,11 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
     X_z, Y_z = np.meshgrid(x, y)
     Y_x, Z_x = np.meshgrid(y, z, indexing="ij")
     X_y, Z_y = np.meshgrid(x, z, indexing="ij")
-    Y_vol, X_vol, Z_vol = np.meshgrid(y, x, z, indexing="ij")
+
+    # Amostragem otimizada para o volume 3D web
+    x_sub = x[::2]
+    y_sub = y[::2]
+    Y_vol, X_vol, Z_vol = np.meshgrid(y_sub, x_sub, z, indexing="ij")
 
     mid_z = len(z) // 2
     mid_x = len(x) // 2
@@ -34,6 +43,13 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
         "depth": "Cividis",
     }
 
+    # Arredondamento numérico para reduzir tamanho do JSON para web/GitHub Pages
+    data_dict = {}
+    for p in propriedades:
+        val = dados[p].astype(np.float32)
+        dec = 4 if p == "porosity" else (2 if p == "permeability_mD" else (0 if p == "facies" else 1))
+        data_dict[p] = np.round(val, dec)
+
     fig = go.Figure()
 
     # Cada propriedade recebe 4 traces:
@@ -42,7 +58,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
     # 2: Fatia Y (Inline / Vertical)
     # 3: Volume 3D (Nuvem volumétrica)
     for i, prop in enumerate(propriedades):
-        val = dados[prop]
+        val = data_dict[prop]
         vmin, vmax = float(np.nanmin(val)), float(np.nanmax(val))
         ativo = (i == 0)
 
@@ -99,12 +115,13 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
         )
 
         # 4. Volume 3D Completo (Ativável na legenda)
+        val_sub = val[::2, ::2, :]
         fig.add_trace(
             go.Volume(
                 x=X_vol.flatten(),
                 y=Y_vol.flatten(),
                 z=Z_vol.flatten(),
-                value=val.flatten(),
+                value=val_sub.flatten(),
                 isomin=vmin,
                 isomax=vmax,
                 opacity=0.10,
@@ -138,7 +155,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
     steps_z = []
     for k, z_val in enumerate(z):
         Z_k = np.full_like(X_z, z_val)
-        surfs = [dados[p][:, :, k] for p in propriedades]
+        surfs = [data_dict[p][:, :, k] for p in propriedades]
         steps_z.append(
             dict(
                 method="restyle",
@@ -157,7 +174,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
     for k in idx_y_list:
         y_val = y[k]
         Y_k = np.full_like(X_y, y_val)
-        surfs = [dados[p][k, :, :] for p in propriedades]
+        surfs = [data_dict[p][k, :, :] for p in propriedades]
         steps_y.append(
             dict(
                 method="restyle",
@@ -176,7 +193,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
     for j in idx_x_list:
         x_val = x[j]
         X_j = np.full_like(Y_x, x_val)
-        surfs = [dados[p][:, j, :] for p in propriedades]
+        surfs = [data_dict[p][:, j, :] for p in propriedades]
         steps_x.append(
             dict(
                 method="restyle",
@@ -185,7 +202,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             )
         )
 
-    # Sliders empilhados com coordenadas Y positivas na faixa dedicada inferior [0.0, 0.24]
+    # Sliders empilhados com coordenadas Y na faixa dedicada [0.0, 0.24]
     slider_z = dict(
         active=mid_z,
         currentvalue={"prefix": "Fatia Z (Profundidade): ", "font": {"size": 12, "color": "#1f77b4"}},
@@ -246,7 +263,7 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
             yanchor="middle",
             font=dict(size=12),
         ),
-        # Delimitar dominio da cena 3D para NUNCA encavalar nos sliders, titulo ou colorbar
+        # Delimitar dominio da cena 3D para NUNCA sobrepor sliders, titulo ou colorbar
         scene=dict(
             domain=dict(x=[0.02, 0.83], y=[0.26, 0.89]),
             xaxis_title="X (m)",
@@ -258,15 +275,15 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
         margin=dict(l=30, r=30, b=30, t=50),
     )
 
-    # Gerar HTML com margens de pagina e container elegante
-    plot_div = fig.to_html(include_plotlyjs=True, full_html=False)
+    # Plotly via CDN para carregamento rápido no GitHub Pages
+    plot_div = fig.to_html(include_plotlyjs="cdn", full_html=False)
 
     template_html = f"""<!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modelo Turbidítico 3D - Fatias Interativas</title>
+  <title>Modelo Turbidítico 3D - Visualização Interativa</title>
   <style>
     * {{
       box-sizing: border-box;
@@ -302,16 +319,23 @@ def gerar_visualizacao_3d(caminho_npz: str = None, abrir_navegador: bool = True)
 </html>
 """
 
-    saida_html = (base_dir / "visualizacao_3d_interativa.html").resolve()
-    with open(saida_html, "w", encoding="utf-8") as f:
+    destino = (base_dir / arquivo_saida).resolve()
+    with open(destino, "w", encoding="utf-8") as f:
         f.write(template_html)
 
-    print(f"Arquivo HTML 3D gerado com sucesso: {saida_html}")
+    # Gera também visualizacao_3d_interativa.html para compatibilidade
+    copia_legado = (base_dir / "visualizacao_3d_interativa.html").resolve()
+    if destino != copia_legado:
+        with open(copia_legado, "w", encoding="utf-8") as f:
+            f.write(template_html)
+
+    print(f"Arquivo HTML gerado com sucesso: {destino}")
 
     if abrir_navegador:
         print("Abrindo navegador padrão...")
-        webbrowser.open(saida_html.as_uri())
+        webbrowser.open(destino.as_uri())
 
 
 if __name__ == "__main__":
-    gerar_visualizacao_3d()
+    sem_navegador = "--no-browser" in sys.argv
+    gerar_visualizacao_3d(abrir_navegador=not sem_navegador)
